@@ -1,0 +1,26 @@
+{
+  "name": "mentoring-program",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "task1": "nodemon ./module_1/task1_1.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/malekylik/node-mentoring-program.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/malekylik/node-mentoring-program/issues"
+  },
+  "homepage": "https://github.com/malekylik/node-mentoring-program#readme",
+  "dependencies": {
+    "csvtojson": "^2.0.10"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.4"
+  }
+}
