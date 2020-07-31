@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "task1": "nodemon ./module_1/task1_1.js",
-    "task2": "nodemon ./module_1/task1_2.js"
+    "task2": "nodemon ./module_1/task1_2.js",
+    "task3": "nodemon --exec babel-node ./module_1/task1_3.js"
   },
   "repository": {
     "type": "git",
@@ -22,6 +23,21 @@
     "csvtojson": "^2.0.10"
   },
   "devDependencies": {
+    "@babel/core": "^7.10.5",
+    "@babel/node": "^7.10.5",
+    "@babel/preset-env": "^7.11.0",
     "nodemon": "^2.0.4"
+  },
+  "babel": {
+    "presets": [
+      [
+        "@babel/env",
+        {
+          "corejs": 3,
+          "useBuiltIns": "entry"
+        }
+      ]
+    ],
+    "plugins": []
   }
 }
