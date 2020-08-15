@@ -1,15 +1,16 @@
 {
   "compilerOptions": {
     "allowJs": true,
+    "allowSyntheticDefaultImports": true,
     "checkJs": true,
-    "module": "ES6",
+    "module": "commonjs",
     "noImplicitAny": true,
     "removeComments": true,
     "preserveConstEnums": true,
     "sourceMap": true,
     "noEmit": true,
     "strict": true,
-    "baseUrl": "./"
+    "baseUrl": "./node_modules"
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]
