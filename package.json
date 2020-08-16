@@ -21,8 +21,10 @@
   },
   "homepage": "https://github.com/malekylik/node-mentoring-program#readme",
   "dependencies": {
+    "@types/uuid": "^8.3.0",
     "csvtojson": "^2.0.10",
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "uuid": "^8.3.0"
   },
   "devDependencies": {
     "@babel/core": "^7.10.5",
