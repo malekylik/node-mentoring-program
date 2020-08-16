@@ -46,6 +46,19 @@ router.route('/users/:id')
         } else {
             res.status(404).end();
         }
+    })
+    .delete((req, res) => {
+        const { id }: { id: string } = (req.params as { id: string });
+
+        const user = savedUsers.find(user => user.id === id && !user.isDeleted);
+
+        if (user) {
+            user.isDeleted = true;
+
+            res.status(202).end();
+        } else {
+            res.status(404).end();
+        }
     });
 
 app.use('/api/v1', router);
