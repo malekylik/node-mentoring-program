@@ -8,7 +8,7 @@
     "task1": "nodemon ./module_1/task1_1.js",
     "task2": "nodemon ./module_1/task1_2.js",
     "task3": "nodemon --exec babel-node ./module_1/task1_3.js",
-    "start": "npm test && nodemon --exec babel-node --extensions '.ts' ./src/index.ts"
+    "start": "npm test && nodemon --exec babel-node --extensions \".ts\" ./src/index.ts"
   },
   "repository": {
     "type": "git",
