@@ -22,9 +22,9 @@ const pushUser = (user: User) => savedUsers.push(user);
 app.use(express.json());
 
 router.route('/users')
-    .post((res, req) => {
+    .post((req, res) => {
         const { login, password, age }: { login: string, password: string, age: string }
-            = (res.body as { login: string, password: string, age: string });
+            = (req.body as { login: string, password: string, age: string });
 
         const user: User = {
             login,
@@ -36,7 +36,7 @@ router.route('/users')
 
         pushUser(user);
 
-        req.status(201).json(user);
+        res.status(201).json(user);
     });
 
 router.route('/users/:id')
@@ -46,6 +46,31 @@ router.route('/users/:id')
         const user = getUserById(id);
 
         if (user) {
+            res.json(user);
+        } else {
+            res.status(404).end();
+        }
+    })
+    .put((req, res) => {
+        const { id }: { id: string } = (req.params as { id: string });
+        const { login, password, age }: { login: string, password: string, age: string }
+            = (req.body as { login: string, password: string, age: string });
+
+        const user = getUserById(id);
+
+        if (user) {
+            if (login !== undefined) {
+                user.login = login;
+            }
+
+            if (password !== undefined) {
+                user.password = password;
+            }
+
+            if (age !== undefined) {
+                user.age = Number(age);
+            }
+
             res.json(user);
         } else {
             res.status(404).end();
