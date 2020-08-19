@@ -9,7 +9,6 @@
     "preserveConstEnums": true,
     "sourceMap": true,
     "noEmit": true,
-    "strict": true,
     "baseUrl": "./node_modules"
   },
   "include": ["src/**/*"],

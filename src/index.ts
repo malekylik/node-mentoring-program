@@ -1,30 +1,23 @@
 import express from 'express';
+
 import { v4 as uuidv4 } from 'uuid';
 
-type User = {
-    id: string;
-    login: string;
-    password: string;
-    age: number;
-    isDeleted: boolean;
-};
-
-const savedUsers: Array<User> = [];
+import { User } from './types';
+import { getUserById, pushUser, getUsers } from './database';
+import { CreateUpdateUserValidation, UserCreateRequest, UserUpdateRequest } from './schema';
 
 const app: express.Application = express();
 
 const router: express.Router = express.Router();
 
-const getUsers = () => savedUsers.filter(user => !user.isDeleted);
-const getUserById = (id: string) => getUsers().find(user => user.id === id);
-const pushUser = (user: User) => savedUsers.push(user);
-
 app.use(express.json());
 
 router.route('/users')
-    .post((req, res) => {
-        const { login, password, age }: { login: string, password: string, age: string }
-            = (req.body as { login: string, password: string, age: string });
+    .get((req, res) => {
+        res.json(getUsers());
+    })
+    .post(CreateUpdateUserValidation, (req: UserCreateRequest, res) => {
+        const { login, password, age } = req.body;
 
         const user: User = {
             login,
@@ -40,8 +33,8 @@ router.route('/users')
     });
 
 router.route('/users/:id')
-    .get((req, res) => {
-        const { id }: { id: string } = (req.params as { id: string });
+    .get((req: UserUpdateRequest, res) => {
+        const { id } = req.params;
 
         const user = getUserById(id);
 
@@ -51,33 +44,24 @@ router.route('/users/:id')
             res.status(404).end();
         }
     })
-    .put((req, res) => {
-        const { id }: { id: string } = (req.params as { id: string });
-        const { login, password, age }: { login: string, password: string, age: string }
-            = (req.body as { login: string, password: string, age: string });
+    .put(CreateUpdateUserValidation, (req: UserUpdateRequest, res) => {
+        const { id } = req.params;
+        const { login, password, age } = req.body;
 
         const user = getUserById(id);
 
         if (user) {
-            if (login !== undefined) {
-                user.login = login;
-            }
-
-            if (password !== undefined) {
-                user.password = password;
-            }
-
-            if (age !== undefined) {
-                user.age = Number(age);
-            }
+            user.login = login;
+            user.password = password;
+            user.age = Number(age);
 
             res.json(user);
         } else {
             res.status(404).end();
         }
     })
-    .delete((req, res) => {
-        const { id }: { id: string } = (req.params as { id: string });
+    .delete((req: UserUpdateRequest, res) => {
+        const { id } = req.params;
 
         const user = getUserById(id);
 
@@ -109,7 +93,7 @@ function getAutoSuggestUsers(loginSubstring: string, limit: number): Array<User>
 
 router.route('/suggest')
     .get((req, res) => {
-        const { login_substring: loginSubstring, limit }:
+        const { login_substring: loginSubstring = '', limit = '15' }:
             { login_substring: string, limit: string } = (req.query as { login_substring: string, limit: string });
 
         const suggest = getAutoSuggestUsers(loginSubstring, Number(limit));
