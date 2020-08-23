@@ -2,6 +2,13 @@ import { User } from './types';
 
 const savedUsers: Array<User> = [];
 
-export const getUsers = (): Array<User> => savedUsers.filter(user => !user.isDeleted);
-export const getUserById = (id: string): User | undefined => getUsers().find(user => user.id === id);
-export const pushUser = (user: User): number => savedUsers.push(user);
+export const getUsers = (): Promise<Array<User>> => Promise.resolve(savedUsers.filter(user => !user.isDeleted));
+
+export const getUserById = async (id: string): Promise<User | undefined> => {
+    const users = await getUsers();
+    const user = users.find(user => user.id === id);
+
+    return user;
+}
+
+export const pushUser = (user: User): Promise<number> => Promise.resolve(savedUsers.push(user));

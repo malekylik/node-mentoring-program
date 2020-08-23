@@ -13,10 +13,10 @@ const router: express.Router = express.Router();
 app.use(express.json());
 
 router.route('/users')
-    .get((req, res) => {
-        res.json(getUsers());
+    .get(async (req, res) => {
+        res.json(await getUsers());
     })
-    .post(CreateUpdateUserValidation, (req: UserCreateRequest, res) => {
+    .post(CreateUpdateUserValidation, async (req: UserCreateRequest, res) => {
         const { login, password, age } = req.body;
 
         const user: User = {
@@ -27,16 +27,16 @@ router.route('/users')
             isDeleted: false,
         };
 
-        pushUser(user);
+        await pushUser(user);
 
         res.status(201).json(user);
     });
 
 router.route('/users/:id')
-    .get((req: UserUpdateRequest, res) => {
+    .get(async (req: UserUpdateRequest, res) => {
         const { id } = req.params;
 
-        const user = getUserById(id);
+        const user = await getUserById(id);
 
         if (user) {
             res.json(user);
@@ -44,11 +44,11 @@ router.route('/users/:id')
             res.status(404).end();
         }
     })
-    .put(CreateUpdateUserValidation, (req: UserUpdateRequest, res) => {
+    .put(CreateUpdateUserValidation, async (req: UserUpdateRequest, res) => {
         const { id } = req.params;
         const { login, password, age } = req.body;
 
-        const user = getUserById(id);
+        const user = await getUserById(id);
 
         if (user) {
             user.login = login;
@@ -60,10 +60,10 @@ router.route('/users/:id')
             res.status(404).end();
         }
     })
-    .delete((req: UserUpdateRequest, res) => {
+    .delete(async (req: UserUpdateRequest, res) => {
         const { id } = req.params;
 
-        const user = getUserById(id);
+        const user = await getUserById(id);
 
         if (user) {
             user.isDeleted = true;
@@ -75,10 +75,10 @@ router.route('/users/:id')
     });
 
 
-function getAutoSuggestUsers(loginSubstring: string, limit: number): Array<User> {
-    const suggestedUsers: Array<User> = [];
+async function getAutoSuggestUsers(loginSubstring: string, limit: number): Promise<Array<User>> {
+    const sorted = (await getUsers()).sort((user1, user2) => user2.login < user1.login ? 1 : -1);
 
-    const sorted = getUsers().sort((user1, user2) => user2.login < user1.login ? 1 : -1);
+    const suggestedUsers: Array<User> = [];
 
     for (let i = 0; i < sorted.length && suggestedUsers.length < limit; i++) {
         const user = sorted[i];
@@ -92,11 +92,11 @@ function getAutoSuggestUsers(loginSubstring: string, limit: number): Array<User>
 }
 
 router.route('/suggest')
-    .get((req, res) => {
+    .get(async (req, res) => {
         const { login_substring: loginSubstring = '', limit = '15' }:
             { login_substring: string, limit: string } = (req.query as { login_substring: string, limit: string });
 
-        const suggest = getAutoSuggestUsers(loginSubstring, Number(limit));
+        const suggest = await getAutoSuggestUsers(loginSubstring, Number(limit));
 
         res.json(suggest);
     });
