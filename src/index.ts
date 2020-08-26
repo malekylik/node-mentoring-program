@@ -1,9 +1,7 @@
 import express from 'express';
 
-import { v4 as uuidv4 } from 'uuid';
-
 import { User } from './types';
-import { getUserById, pushUser, getUsers } from './database';
+import { getUserById, pushUser, getUsers, getAutoSuggestUsers, updateUser, deleteUser } from './database';
 import { CreateUpdateUserValidation, UserCreateRequest, UserUpdateRequest } from './schema';
 
 const app: express.Application = express();
@@ -14,20 +12,14 @@ app.use(express.json());
 
 router.route('/users')
     .get(async (req, res) => {
-        res.json(await getUsers());
+        const users = await getUsers();
+
+        res.json(users);
     })
     .post(CreateUpdateUserValidation, async (req: UserCreateRequest, res) => {
         const { login, password, age } = req.body;
 
-        const user: User = {
-            login,
-            password,
-            id: uuidv4(),
-            age: Number(age),
-            isDeleted: false,
-        };
-
-        await pushUser(user);
+        const user: User = await pushUser({ login, password, age: Number(age) });
 
         res.status(201).json(user);
     });
@@ -35,8 +27,7 @@ router.route('/users')
 router.route('/users/:id')
     .get(async (req: UserUpdateRequest, res) => {
         const { id } = req.params;
-
-        const user = await getUserById(id);
+        const user: User = await getUserById(id);
 
         if (user) {
             res.json(user);
@@ -48,13 +39,9 @@ router.route('/users/:id')
         const { id } = req.params;
         const { login, password, age } = req.body;
 
-        const user = await getUserById(id);
+        const user = await updateUser(id, { login, password, age: Number(age) });
 
         if (user) {
-            user.login = login;
-            user.password = password;
-            user.age = Number(age);
-
             res.json(user);
         } else {
             res.status(404).end();
@@ -63,33 +50,14 @@ router.route('/users/:id')
     .delete(async (req: UserUpdateRequest, res) => {
         const { id } = req.params;
 
-        const user = await getUserById(id);
+        const isDeleted = await deleteUser(id);
 
-        if (user) {
-            user.isDeleted = true;
-
+        if (isDeleted) {
             res.status(202).end();
         } else {
             res.status(404).end();
         }
     });
-
-
-async function getAutoSuggestUsers(loginSubstring: string, limit: number): Promise<Array<User>> {
-    const sorted = (await getUsers()).sort((user1, user2) => user2.login < user1.login ? 1 : -1);
-
-    const suggestedUsers: Array<User> = [];
-
-    for (let i = 0; i < sorted.length && suggestedUsers.length < limit; i++) {
-        const user = sorted[i];
-
-        if (new RegExp(loginSubstring).test(user.login)) {
-            suggestedUsers.push(user);
-        }
-    }
-
-    return suggestedUsers;
-}
 
 router.route('/suggest')
     .get(async (req, res) => {
@@ -105,4 +73,8 @@ app.use('/api/v1', router);
 
 app.listen(8080, () => {
     console.log('Server is running on port: 8080');
+});
+
+process.on('unhandledRejection', (e) => {
+    console.log('error occured: ', e);
 });
