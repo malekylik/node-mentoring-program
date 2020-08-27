@@ -4,7 +4,7 @@ import { UserInstance } from './types';
 import { User } from 'app/types';
 
 export class UserModel {
-    private userModelDB: ModelCtor<UserInstance> = null;
+    private userModelDB: ModelCtor<UserInstance>;
 
     constructor (userModelDB: ModelCtor<UserInstance>) {
         this.userModelDB = userModelDB;
