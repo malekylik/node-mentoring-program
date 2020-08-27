@@ -22,7 +22,7 @@ export class UserModel {
         if (!user) {
             return null;
         }
-    
+
         return user.toJSON() as User;
     }
 
@@ -38,13 +38,13 @@ export class UserModel {
         if (!user) {
             return null;
         }
-    
+
         user.login = userParams.login;
         user.password = userParams.password;
         user.age = Number(userParams.age);
-    
+
         await user.save();
-    
+
         return user.toJSON() as User;
     }
 
@@ -54,9 +54,9 @@ export class UserModel {
         if (!user) {
             return false;
         }
-    
+
         await user.destroy();
-    
+
         return true;
     }
 
@@ -69,7 +69,7 @@ export class UserModel {
                 }
             }
         });
-    
+
         return suggest.map(user => user.toJSON() as User);
     }
 

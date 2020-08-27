@@ -5,6 +5,7 @@ import { CreateUpdateUserValidation, UserCreateRequest, UserUpdateRequest } from
 import { loadSequelize } from './loaders/sequelize.loader';
 import { loadUserModal } from './loaders/user-modal.loader';
 import { UserModel } from './models/user.model';
+import { UserService } from './services/user.service';
 
 const app: express.Application = express();
 
@@ -15,18 +16,18 @@ app.use(express.json());
 async function startApp() {
     const sequelize = await loadSequelize();
     const userModalDB = loadUserModal(sequelize);
-    const userModal = new UserModel(userModalDB);
+    const userService = new UserService(new UserModel(userModalDB));
 
     router.route('/users')
         .get(async (req, res) => {
-            const users = await userModal.getUsers();
+            const users = await userService.getUsers();
 
             res.json(users);
         })
         .post(CreateUpdateUserValidation, async (req: UserCreateRequest, res) => {
             const { login, password, age } = req.body;
 
-            const user: User = await userModal.saveUser({ login, password, age: Number(age) });
+            const user: User = await userService.saveUser({ login, password, age: Number(age) });
 
             res.status(201).json(user);
         });
@@ -34,7 +35,7 @@ async function startApp() {
     router.route('/users/:id')
         .get(async (req: UserUpdateRequest, res) => {
             const { id } = req.params;
-            const user: User = await userModal.getUserById(id);
+            const user: User = await userService.getUserById(id);
 
             if (user) {
                 res.json(user);
@@ -46,7 +47,7 @@ async function startApp() {
             const { id } = req.params;
             const { login, password, age } = req.body;
 
-            const user = await userModal.updateUser(id, { login, password, age: Number(age) });
+            const user = await userService.updateUser(id, { login, password, age: Number(age) });
 
             if (user) {
                 res.json(user);
@@ -57,7 +58,7 @@ async function startApp() {
         .delete(async (req: UserUpdateRequest, res) => {
             const { id } = req.params;
 
-            const isDeleted = await userModal.deleteUser(id);
+            const isDeleted = await userService.deleteUser(id);
 
             if (isDeleted) {
                 res.status(202).end();
@@ -71,7 +72,7 @@ async function startApp() {
             const { login_substring: loginSubstring = '', limit = '15' }:
                 { login_substring: string, limit: string } = (req.query as { login_substring: string, limit: string });
 
-            const suggest = await userModal.getAutoSuggestUsers(loginSubstring, Number(limit));
+            const suggest = await userService.getAutoSuggestUsers(loginSubstring, Number(limit));
 
             res.json(suggest);
         });
