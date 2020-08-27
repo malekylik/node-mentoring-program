@@ -1,8 +1,8 @@
-import { Sequelize, DataTypes, Model, Op } from 'sequelize';
+import { Sequelize, DataTypes, Op } from 'sequelize';
 
-import { User } from './types';
+import { User } from 'app/types';
+import { UserInstance } from 'app/models/types';
 
-// Option 2: Passing parameters separately (other dialects)
 const sequelize = new Sequelize('nodementoring', 'postgres', '308029', {
     host: 'localhost',
     dialect: 'postgres'
@@ -19,9 +19,6 @@ process.on('exit', () => { void sequelize.close(); });
 process.on('SIGINT', () => { void sequelize.close(); });
 
 process.on('unhandledRejection', () => { void sequelize.close(); });
-
-interface UserInstance extends User, Model {
-}
 
 export const UserModel = sequelize.define<UserInstance>('user', {
     id: {
