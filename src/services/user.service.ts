@@ -1,10 +1,14 @@
 import { User } from 'app/types';
 import { UserModel } from 'app/models/user.model';
 
-export class UserService {
+class UserService {
     private userModel: UserModel;
 
-    constructor (userModel: UserModel) {
+    constructor (userModel?: UserModel) {
+        this.userModel = userModel;
+    }
+
+    setUserModel(userModel: UserModel): void {
         this.userModel = userModel;
     }
 
@@ -32,3 +36,7 @@ export class UserService {
         return this.userModel.getAutoSuggestUsers(loginSubstring, limit);
     }
 }
+
+const userService = new UserService();
+
+export { userService as UserService };
