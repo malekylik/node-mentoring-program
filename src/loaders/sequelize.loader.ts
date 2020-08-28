@@ -1,8 +1,10 @@
 import { Sequelize } from 'sequelize';
 
+import { config } from 'app/config/index';
+
 export async function loadSequelize(): Promise<Sequelize> {
-    const sequelize = new Sequelize('nodementoring', 'postgres', '308029', {
-        host: 'localhost',
+    const sequelize = new Sequelize('nodementoring', config.dbUser, config.dbPass, {
+        host: config.dbHost,
         dialect: 'postgres'
     });
 

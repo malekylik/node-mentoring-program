@@ -25,6 +25,7 @@
     "@types/express-serve-static-core": "^4.17.9",
     "@types/uuid": "^8.3.0",
     "csvtojson": "^2.0.10",
+    "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "express-joi-validation": "^4.0.4-beta.0",
     "pg": "^8.3.2",
@@ -59,12 +60,17 @@
       "@babel/preset-typescript"
     ],
     "plugins": [
-      ["module-resolver", {
-        "root": ["./"],
-        "alias": {
-          "app": "./src"
+      [
+        "module-resolver",
+        {
+          "root": [
+            "./"
+          ],
+          "alias": {
+            "app": "./src"
+          }
         }
-      }]
+      ]
     ]
   }
 }
