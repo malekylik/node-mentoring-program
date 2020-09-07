@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "eslint \"./src/index.ts\" && tsc",
+    "test": "eslint --ext .js,.jsx,.ts,.tsx \"./src/**\" && tsc",
     "task1": "nodemon ./module_1/task1_1.js",
     "task2": "nodemon ./module_1/task1_2.js",
     "task3": "nodemon --exec babel-node ./module_1/task1_3.js",
@@ -22,10 +22,14 @@
   "homepage": "https://github.com/malekylik/node-mentoring-program#readme",
   "dependencies": {
     "@hapi/joi": "^17.1.1",
+    "@types/express-serve-static-core": "^4.17.9",
     "@types/uuid": "^8.3.0",
     "csvtojson": "^2.0.10",
+    "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "express-joi-validation": "^4.0.4-beta.0",
+    "pg": "^8.3.2",
+    "sequelize": "^6.3.4",
     "uuid": "^8.3.0"
   },
   "devDependencies": {
@@ -36,8 +40,10 @@
     "@types/express": "^4.17.7",
     "@types/hapi__joi": "^17.1.4",
     "@types/node": "^14.0.27",
+    "@types/validator": "^13.1.0",
     "@typescript-eslint/eslint-plugin": "^3.9.0",
     "@typescript-eslint/parser": "^3.9.0",
+    "babel-plugin-module-resolver": "^4.0.0",
     "eslint": "^7.7.0",
     "nodemon": "^2.0.4",
     "typescript": "^3.9.7"
@@ -53,6 +59,18 @@
       ],
       "@babel/preset-typescript"
     ],
-    "plugins": []
+    "plugins": [
+      [
+        "module-resolver",
+        {
+          "root": [
+            "./"
+          ],
+          "alias": {
+            "app": "./src"
+          }
+        }
+      ]
+    ]
   }
 }
