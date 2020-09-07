@@ -2,7 +2,7 @@ import express from 'express';
 
 import { CreateUpdateUserValidation } from './schema';
 import { loadSequelize } from './loaders/sequelize.loader';
-import { loadUserModal } from './loaders/user-modal.loader';
+import { loadUserModel } from './loaders/user-model.loader';
 import { UserModel } from './models/user.model';
 import { UserService } from './services/user.service';
 import { getUsers, createUser, getUserById, updateUser, deleteUser, getAutoSuggestUsers } from './controllers/user.controller';
@@ -15,7 +15,7 @@ app.use(express.json());
 
 async function startApp() {
     const sequelize = await loadSequelize();
-    const userModalDB = loadUserModal(sequelize);
+    const userModalDB = loadUserModel(sequelize);
     UserService.setUserModel(new UserModel(userModalDB));
 
     router.route('/users')
