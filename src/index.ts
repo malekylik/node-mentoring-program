@@ -10,8 +10,7 @@ import { GroupModel } from './models/group.model';
 import { UserService } from './services/user.service';
 import { GroupService } from './services/group.service';
 import { getUsers, createUser, getUserById, updateUser, deleteUser, getAutoSuggestUsers } from './controllers/user.controller';
-import { Group } from './types';
-import { GroupCreateRequest, GroupUpdateRequest } from 'app/schemas/group.schema';
+import { getGroups, createGroup, getGroupById, updateGroup, deleteGroup } from './controllers/group.controller';
 
 const app: express.Application = express();
 
@@ -39,53 +38,13 @@ async function startApp() {
         .get(getAutoSuggestUsers);
 
     router.route('/groups')
-        .get(async (req, res) => {
-            const groups = await GroupService.getGroups();
-
-            res.json(groups);
-        })
-        .post(CreateUpdateGroupValidation, async (req: GroupCreateRequest, res) => {
-            const { name, permissions } = req.body;
-
-            const group = await GroupService.saveGroup({ name, permissions });
-
-            res.json(group);
-        });
+        .get(getGroups)
+        .post(CreateUpdateGroupValidation, createGroup);
 
     router.route('/groups/:id')
-        .get(async (req, res) => {
-            const { id } = req.params;
-            const group: Group = await GroupService.getGroupById(id);
-
-            if (group) {
-                res.json(group);
-            } else {
-                res.status(404).end();
-            }
-        })
-        .put(CreateUpdateGroupValidation, async (req: GroupUpdateRequest, res) => {
-            const { id } = req.params;
-            const { name, permissions } = req.body;
-
-            const group = await GroupService.updateGroup(id, { name, permissions });
-
-            if (group) {
-                res.json(group);
-            } else {
-                res.status(404).end();
-            }
-        })
-        .delete(async (req, res) => {
-            const { id } = req.params;
-
-            const isDeleted = await GroupService.deleteGroup(id);
-
-            if (isDeleted) {
-                res.status(202).end();
-            } else {
-                res.status(404).end();
-            }
-        });
+        .get(getGroupById)
+        .put(CreateUpdateGroupValidation, updateGroup)
+        .delete(deleteGroup);
 
     app.use('/api/v1', router);
 
