@@ -8,6 +8,7 @@ import { loadGroupModel } from './loaders/group-model.loader';
 import { UserModel } from './models/user.model';
 import { GroupModel } from './models/group.model';
 import { UserService } from './services/user.service';
+import { GroupService } from './services/group.service';
 import { getUsers, createUser, getUserById, updateUser, deleteUser, getAutoSuggestUsers } from './controllers/user.controller';
 import { Group } from './types';
 import { GroupCreateRequest, GroupUpdateRequest } from 'app/schemas/group.schema';
@@ -23,8 +24,7 @@ async function startApp() {
     const userModelDB = loadUserModel(sequelize);
     const groupModelDB = loadGroupModel(sequelize);
     UserService.setUserModel(new UserModel(userModelDB));
-
-    const groupModel = new GroupModel(groupModelDB);
+    GroupService.setGroupModel(new GroupModel(groupModelDB))
 
     router.route('/users')
         .get(getUsers)
@@ -40,14 +40,14 @@ async function startApp() {
 
     router.route('/groups')
         .get(async (req, res) => {
-            const groups = await groupModel.getGroups();
+            const groups = await GroupService.getGroups();
 
             res.json(groups);
         })
         .post(CreateUpdateGroupValidation, async (req: GroupCreateRequest, res) => {
             const { name, permissions } = req.body;
 
-            const group = await groupModel.saveGroup({ name, permissions });
+            const group = await GroupService.saveGroup({ name, permissions });
 
             res.json(group);
         });
@@ -55,7 +55,7 @@ async function startApp() {
     router.route('/groups/:id')
         .get(async (req, res) => {
             const { id } = req.params;
-            const group: Group = await groupModel.getGroupById(id);
+            const group: Group = await GroupService.getGroupById(id);
 
             if (group) {
                 res.json(group);
@@ -67,7 +67,7 @@ async function startApp() {
             const { id } = req.params;
             const { name, permissions } = req.body;
 
-            const group = await groupModel.updateGroup(id, { name, permissions });
+            const group = await GroupService.updateGroup(id, { name, permissions });
 
             if (group) {
                 res.json(group);
@@ -78,7 +78,7 @@ async function startApp() {
         .delete(async (req, res) => {
             const { id } = req.params;
 
-            const isDeleted = await groupModel.deleteGroup(id);
+            const isDeleted = await GroupService.deleteGroup(id);
 
             if (isDeleted) {
                 res.status(202).end();
