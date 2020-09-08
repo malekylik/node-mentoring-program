@@ -17,7 +17,7 @@ export class UserModel {
     }
 
     async getUserById(id: string | number): Promise<User | null> {
-        const user = await this.getUserByIdModel(id);
+        const user = await this.getUserModelById(id);
 
         if (!user) {
             return null;
@@ -33,7 +33,7 @@ export class UserModel {
     }
 
     async updateUser(id: string | number, userParams: Partial<User>): Promise<User | null> {
-        const user = await this.getUserByIdModel(id);
+        const user = await this.getUserModelById(id);
 
         if (!user) {
             return null;
@@ -49,7 +49,7 @@ export class UserModel {
     }
 
     async deleteUser(id: string): Promise<boolean> {
-        const user = await this.getUserByIdModel(id);
+        const user = await this.getUserModelById(id);
 
         if (!user) {
             return false;
@@ -73,7 +73,7 @@ export class UserModel {
         return suggest.map(user => user.toJSON() as User);
     }
 
-    private async getUserByIdModel(id: string | number): Promise<UserInstance | undefined> {
+    private async getUserModelById(id: string | number): Promise<UserInstance | undefined> {
         const user = await this.userModelDB.findOne({ where: { id } });
 
         return user;

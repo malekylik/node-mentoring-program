@@ -8,6 +8,7 @@ import { UserModel } from './models/user.model';
 import { GroupModel } from './models/group.model';
 import { UserService } from './services/user.service';
 import { getUsers, createUser, getUserById, updateUser, deleteUser, getAutoSuggestUsers } from './controllers/user.controller';
+import { Group } from './types';
 
 const app: express.Application = express();
 
@@ -47,6 +48,41 @@ async function startApp() {
             const group = await groupModel.saveGroup({ name, permissions });
 
             res.json(group);
+        });
+
+    router.route('/groups/:id')
+        .get(async (req, res) => {
+            const { id } = req.params;
+            const group: Group = await groupModel.getGroupById(id);
+
+            if (group) {
+                res.json(group);
+            } else {
+                res.status(404).end();
+            }
+        })
+        .put(async (req, res) => {
+            const { id } = req.params;
+            const { name, permissions } = req.body;
+
+            const group = await groupModel.updateGroup(id, { name, permissions });
+
+            if (group) {
+                res.json(group);
+            } else {
+                res.status(404).end();
+            }
+        })
+        .delete(async (req, res) => {
+            const { id } = req.params;
+
+            const isDeleted = await groupModel.deleteGroup(id);
+
+            if (isDeleted) {
+                res.status(202).end();
+            } else {
+                res.status(404).end();
+            }
         });
 
     app.use('/api/v1', router);
