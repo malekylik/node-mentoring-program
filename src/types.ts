@@ -5,7 +5,7 @@ export type User = {
     age: number;
 };
 
-type Permission = 'READ' | 'WRITE' | 'DELETE' | 'SHARE' | 'UPLOAD_FILES';
+export type Permission = 'READ' | 'WRITE' | 'DELETE' | 'SHARE' | 'UPLOAD_FILES';
 
 export type Group = {
     id: string;

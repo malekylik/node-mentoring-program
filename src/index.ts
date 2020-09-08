@@ -1,6 +1,7 @@
 import express from 'express';
 
-import { CreateUpdateUserValidation } from './schema';
+import { CreateUpdateUserValidation } from './schemas/user.schema';
+import { CreateUpdateGroupValidation } from './schemas/group.schema';
 import { loadSequelize } from './loaders/sequelize.loader';
 import { loadUserModel } from './loaders/user-model.loader';
 import { loadGroupModel } from './loaders/group-model.loader';
@@ -9,6 +10,7 @@ import { GroupModel } from './models/group.model';
 import { UserService } from './services/user.service';
 import { getUsers, createUser, getUserById, updateUser, deleteUser, getAutoSuggestUsers } from './controllers/user.controller';
 import { Group } from './types';
+import { GroupCreateRequest, GroupUpdateRequest } from 'app/schemas/group.schema';
 
 const app: express.Application = express();
 
@@ -42,7 +44,7 @@ async function startApp() {
 
             res.json(groups);
         })
-        .post(async (req, res) => {
+        .post(CreateUpdateGroupValidation, async (req: GroupCreateRequest, res) => {
             const { name, permissions } = req.body;
 
             const group = await groupModel.saveGroup({ name, permissions });
@@ -61,7 +63,7 @@ async function startApp() {
                 res.status(404).end();
             }
         })
-        .put(async (req, res) => {
+        .put(CreateUpdateGroupValidation, async (req: GroupUpdateRequest, res) => {
             const { id } = req.params;
             const { name, permissions } = req.body;
 
