@@ -5,10 +5,12 @@ import { CreateUpdateGroupValidation } from './schemas/group.schema';
 import { loadSequelize } from './loaders/sequelize.loader';
 import { loadUserModel } from './loaders/user-model.loader';
 import { loadGroupModel } from './loaders/group-model.loader';
+import { loadUserGroupsModel } from './loaders/user-groups.loader';
 import { UserModel } from './models/user.model';
 import { GroupModel } from './models/group.model';
 import { UserService } from './services/user.service';
 import { GroupService } from './services/group.service';
+import { SequelizeService } from './services/sequelize.service';
 import { getUsers, createUser, getUserById, updateUser, deleteUser, getAutoSuggestUsers } from './controllers/user.controller';
 import { getGroups, createGroup, getGroupById, updateGroup, deleteGroup } from './controllers/group.controller';
 
@@ -22,8 +24,14 @@ async function startApp() {
     const sequelize = await loadSequelize();
     const userModelDB = loadUserModel(sequelize);
     const groupModelDB = loadGroupModel(sequelize);
-    UserService.setUserModel(new UserModel(userModelDB));
-    GroupService.setGroupModel(new GroupModel(groupModelDB))
+    const userGroupsModelDB = await loadUserGroupsModel(sequelize, userModelDB, groupModelDB);
+
+    userModelDB.belongsToMany(groupModelDB, { through: userGroupsModelDB });
+    groupModelDB.belongsToMany(userModelDB, { through: userGroupsModelDB });
+
+    UserService.setUserModel(new UserModel(userModelDB, groupModelDB));
+    GroupService.setGroupModel(new GroupModel(groupModelDB, userModelDB));
+    SequelizeService.setSequelize(sequelize);
 
     router.route('/users')
         .get(getUsers)
