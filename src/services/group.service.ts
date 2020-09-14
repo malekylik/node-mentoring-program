@@ -1,5 +1,7 @@
-import { Group } from 'app/types';
+import { Transaction } from 'sequelize';
+
 import { GroupModel } from 'app/models/group.model';
+import { Group } from 'app/types';
 
 class GroupService {
     private groupModel: GroupModel;
@@ -20,8 +22,8 @@ class GroupService {
         return this.groupModel.getGroupById(id);
     }
 
-    async saveGroup(userParams: Partial<Group>): Promise<Group> {
-        return this.groupModel.saveGroup(userParams);
+    async saveGroup(groupParams: Partial<Group>): Promise<Group> {
+        return this.groupModel.saveGroup(groupParams);
     }
 
     async updateGroup(id: string | number, userParams: Partial<Group>): Promise<Group | null> {
@@ -30,6 +32,10 @@ class GroupService {
 
     async deleteGroup(id: string): Promise<boolean> {
         return this.groupModel.deleteGroup(id);
+    }
+
+    async setUsers(id: string, users: Array<string>, options?: { transaction: Transaction }) {
+        return this.groupModel.setUsers(id, users, options);
     }
 }
 

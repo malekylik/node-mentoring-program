@@ -1,17 +1,24 @@
-import { ModelCtor } from 'sequelize';
+import { ModelCtor, Model, Transaction } from 'sequelize';
 
 import { GroupInstance } from './types';
 import { Group } from 'app/types';
 
 export class GroupModel {
     private groupModelDB: ModelCtor<GroupInstance>;
+    private userModelDB: ModelCtor<Model>;
 
-    constructor (groupModelDB: ModelCtor<GroupInstance>) {
+    constructor (groupModelDB: ModelCtor<GroupInstance>, userModelDB: ModelCtor<Model>) {
         this.groupModelDB = groupModelDB;
+        this.userModelDB = userModelDB;
     }
 
     async getGroups(): Promise<Array<Group>> {
-        const groups = await this.groupModelDB.findAll();
+        const groups = await this.groupModelDB.findAll({
+            include: {
+                model: this.userModelDB,
+                through: { attributes: [] }
+            },
+        });
 
         return groups.map(group => group.toJSON() as Group);
     }
@@ -59,8 +66,29 @@ export class GroupModel {
         return true;
     }
 
-    private async getGroupModelById(id: string | number): Promise<GroupInstance | undefined> {
-        const group = await this.groupModelDB.findOne({ where: { id } });
+    async setUsers(id: string, users: Array<string>, options?: { transaction: Transaction }): Promise<Group> {
+        const group = await this.getGroupModelById(id, options);
+
+        await group.addUsers(users, options);
+
+        const groupJSON = group.toJSON() as Group;
+        groupJSON.users = await group.getUsers({
+            joinTableAttributes: [],
+            ...options,
+        });
+
+        return groupJSON;
+    }
+
+    private async getGroupModelById(id: string | number, options?: { transaction: Transaction }): Promise<GroupInstance | undefined> {
+        const group = await this.groupModelDB.findOne({
+            where: { id },
+            include: {
+                model: this.userModelDB,
+                through: { attributes: [] }
+            },
+            ...options,
+        });
 
         return group;
     }
