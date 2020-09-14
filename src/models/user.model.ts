@@ -1,17 +1,24 @@
-import { ModelCtor, Op } from 'sequelize';
+import { ModelCtor, Op, Model } from 'sequelize';
 
 import { UserInstance } from './types';
 import { User } from 'app/types';
 
 export class UserModel {
     private userModelDB: ModelCtor<UserInstance>;
+    private groupModelDB: ModelCtor<Model>;
 
-    constructor (userModelDB: ModelCtor<UserInstance>) {
+    constructor (userModelDB: ModelCtor<UserInstance>, groupModelDB: ModelCtor<Model>) {
         this.userModelDB = userModelDB;
+        this.groupModelDB = groupModelDB;
     }
 
     async getUsers(): Promise<Array<User>> {
-        const users = await this.userModelDB.findAll();
+        const users = await this.userModelDB.findAll({
+            include: {
+                model: this.groupModelDB,
+                through: { attributes: [] }
+            },
+        });
 
         return users.map(user => user.toJSON() as User);
     }
@@ -74,7 +81,13 @@ export class UserModel {
     }
 
     private async getUserModelById(id: string | number): Promise<UserInstance | undefined> {
-        const user = await this.userModelDB.findOne({ where: { id } });
+        const user = await this.userModelDB.findOne({
+            where: { id },
+            include: {
+                model: this.groupModelDB,
+                through: { attributes: [] }
+            },
+        });
 
         return user;
     }
