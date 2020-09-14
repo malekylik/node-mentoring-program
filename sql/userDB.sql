@@ -13,7 +13,8 @@ CREATE TABLE Users(
 CREATE TABLE Groups(
     id SERIAL,
     name VARCHAR (255) NOT NULL,
-    permissions VARCHAR (255) []
+    permissions VARCHAR (255) [],
+    PRIMARY KEY (id)
 );
 
 INSERT INTO Users (login, password, age) VALUES ('log2', 'pass2', 12);
