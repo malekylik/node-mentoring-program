@@ -11,7 +11,7 @@ const validator = createValidator();
 
 const querySchema = Joi.object({
     groupId: Joi.number().positive().required(),
-    userIds: Joi.number().positive().required(),
+    userIds: Joi.array().items(Joi.number().positive()).unique().required(),
 });
 
 interface AddUsersToGroup extends ValidatedRequestSchema {
