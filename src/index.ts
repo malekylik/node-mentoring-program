@@ -2,6 +2,7 @@ import express from 'express';
 
 import { CreateUpdateUserValidation } from './schemas/user.schema';
 import { CreateUpdateGroupValidation } from './schemas/group.schema';
+import { AddUsersToGroupValidation } from './schemas/user-groups.schema';
 import { loadSequelize } from './loaders/sequelize.loader';
 import { loadUserModel } from './loaders/user-model.loader';
 import { loadGroupModel } from './loaders/group-model.loader';
@@ -13,6 +14,7 @@ import { GroupService } from './services/group.service';
 import { SequelizeService } from './services/sequelize.service';
 import { getUsers, createUser, getUserById, updateUser, deleteUser, getAutoSuggestUsers } from './controllers/user.controller';
 import { getGroups, createGroup, getGroupById, updateGroup, deleteGroup } from './controllers/group.controller';
+import { addUsersToGroup } from './controllers/user-groups.controller';
 
 const app: express.Application = express();
 
@@ -53,6 +55,9 @@ async function startApp() {
         .get(getGroupById)
         .put(CreateUpdateGroupValidation, updateGroup)
         .delete(deleteGroup);
+
+    router.route('/user-groups')
+        .put(AddUsersToGroupValidation, addUsersToGroup);
 
     app.use('/api/v1', router);
 
