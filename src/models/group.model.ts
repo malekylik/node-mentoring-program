@@ -69,6 +69,10 @@ export class GroupModel {
     async setUsers(id: string, users: Array<string>, options?: { transaction: Transaction }): Promise<Group> {
         const group = await this.getGroupModelById(id, options);
 
+        if (!group) {
+            return null;
+        }
+
         await group.addUsers(users, options);
 
         const groupJSON = group.toJSON() as Group;

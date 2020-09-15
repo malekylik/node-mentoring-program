@@ -9,8 +9,14 @@ export async function addUsersToGroup(req: AddUsersToGroupRequest, res: express.
     const result = await UserGroupsService.addUsersToGroup(groupId, userIds);
 
     if (result.isSuccess) {
-        res.json(result.getValue());
+        const value = result.getValue()
+
+        if (value !== null) {
+            res.json(value);
+        } else {
+            res.status(404).end();
+        }
     } else {
-        res.status(404).json(result.getError());
+        res.status(400).json(result.getError());
     }
 }
