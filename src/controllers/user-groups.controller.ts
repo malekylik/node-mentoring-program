@@ -6,7 +6,7 @@ import { AddUsersToGroupRequest } from 'app/schemas/user-groups.schema';
 export async function addUsersToGroup(req: AddUsersToGroupRequest, res: express.Response): Promise<void> {
     const { groupId, userIds } = req.body;
 
-    const result = await UserGroupsService.addUsersToGroup(groupId, userIds);
+    const result = await UserGroupsService.addUsersToGroup(groupId, userIds.map(id => String(id)));
 
     if (result.isSuccess) {
         const value = result.getValue()
