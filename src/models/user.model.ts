@@ -1,23 +1,30 @@
-import { ModelCtor, Op } from 'sequelize';
+import { ModelCtor, Op, Model } from 'sequelize';
 
 import { UserInstance } from './types';
 import { User } from 'app/types';
 
 export class UserModel {
     private userModelDB: ModelCtor<UserInstance>;
+    private groupModelDB: ModelCtor<Model>;
 
-    constructor (userModelDB: ModelCtor<UserInstance>) {
+    constructor (userModelDB: ModelCtor<UserInstance>, groupModelDB: ModelCtor<Model>) {
         this.userModelDB = userModelDB;
+        this.groupModelDB = groupModelDB;
     }
 
     async getUsers(): Promise<Array<User>> {
-        const users = await this.userModelDB.findAll();
+        const users = await this.userModelDB.findAll({
+            include: {
+                model: this.groupModelDB,
+                through: { attributes: [] }
+            },
+        });
 
         return users.map(user => user.toJSON() as User);
     }
 
     async getUserById(id: string | number): Promise<User | null> {
-        const user = await this.getUserByIdModel(id);
+        const user = await this.getUserModelById(id);
 
         if (!user) {
             return null;
@@ -33,7 +40,7 @@ export class UserModel {
     }
 
     async updateUser(id: string | number, userParams: Partial<User>): Promise<User | null> {
-        const user = await this.getUserByIdModel(id);
+        const user = await this.getUserModelById(id);
 
         if (!user) {
             return null;
@@ -49,7 +56,7 @@ export class UserModel {
     }
 
     async deleteUser(id: string): Promise<boolean> {
-        const user = await this.getUserByIdModel(id);
+        const user = await this.getUserModelById(id);
 
         if (!user) {
             return false;
@@ -73,8 +80,14 @@ export class UserModel {
         return suggest.map(user => user.toJSON() as User);
     }
 
-    private async getUserByIdModel(id: string | number): Promise<UserInstance | undefined> {
-        const user = await this.userModelDB.findOne({ where: { id } });
+    private async getUserModelById(id: string | number): Promise<UserInstance | undefined> {
+        const user = await this.userModelDB.findOne({
+            where: { id },
+            include: {
+                model: this.groupModelDB,
+                through: { attributes: [] }
+            },
+        });
 
         return user;
     }

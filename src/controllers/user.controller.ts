@@ -1,7 +1,7 @@
 import express from 'express';
 
 import { UserService } from 'app/services/user.service';
-import { UserCreateRequest, UserUpdateRequest } from 'app/schema';
+import { UserCreateRequest, UserUpdateRequest } from 'app/schemas/user.schema';
 import { User } from 'app/types';
 
 export async function getUsers(req: express.Request, res: express.Response): Promise<void> {
