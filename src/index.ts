@@ -15,6 +15,7 @@ import { SequelizeService } from './services/sequelize.service';
 import { getUsers, createUser, getUserById, updateUser, deleteUser, getAutoSuggestUsers } from './controllers/user.controller';
 import { getGroups, createGroup, getGroupById, updateGroup, deleteGroup } from './controllers/group.controller';
 import { addUsersToGroup } from './controllers/user-groups.controller';
+import { logParams } from './log/params.log';
 
 const app: express.Application = express();
 
@@ -36,28 +37,28 @@ async function startApp() {
     SequelizeService.setSequelize(sequelize);
 
     router.route('/users')
-        .get(getUsers)
-        .post(CreateUpdateUserValidation, createUser);
+        .get(logParams, getUsers)
+        .post(CreateUpdateUserValidation, logParams, createUser);
 
     router.route('/users/:id')
-        .get(getUserById)
-        .put(CreateUpdateUserValidation, updateUser)
-        .delete(deleteUser);
+        .get(logParams, getUserById)
+        .put(CreateUpdateUserValidation, logParams, updateUser)
+        .delete(logParams, deleteUser);
 
     router.route('/suggest')
-        .get(getAutoSuggestUsers);
+        .get(logParams, getAutoSuggestUsers);
 
     router.route('/groups')
-        .get(getGroups)
-        .post(CreateUpdateGroupValidation, createGroup);
+        .get(logParams, getGroups)
+        .post(CreateUpdateGroupValidation, logParams, createGroup);
 
     router.route('/groups/:id')
-        .get(getGroupById)
-        .put(CreateUpdateGroupValidation, updateGroup)
-        .delete(deleteGroup);
+        .get(logParams, getGroupById)
+        .put(CreateUpdateGroupValidation, logParams, updateGroup)
+        .delete(logParams, deleteGroup);
 
     router.route('/user-groups')
-        .put(AddUsersToGroupValidation, addUsersToGroup);
+        .put(AddUsersToGroupValidation, logParams, addUsersToGroup);
 
     app.use('/api/v1', router);
 
