@@ -16,6 +16,7 @@ import { getUsers, createUser, getUserById, updateUser, deleteUser, getAutoSugge
 import { getGroups, createGroup, getGroupById, updateGroup, deleteGroup } from './controllers/group.controller';
 import { addUsersToGroup } from './controllers/user-groups.controller';
 import { logParams } from './log/params.log';
+import { performanceLogDecorator } from './log/performance.log';
 
 const app: express.Application = express();
 
@@ -37,28 +38,28 @@ async function startApp() {
     SequelizeService.setSequelize(sequelize);
 
     router.route('/users')
-        .get(logParams, getUsers)
-        .post(CreateUpdateUserValidation, logParams, createUser);
+        .get(logParams, performanceLogDecorator(getUsers))
+        .post(CreateUpdateUserValidation, logParams, performanceLogDecorator(createUser));
 
     router.route('/users/:id')
-        .get(logParams, getUserById)
-        .put(CreateUpdateUserValidation, logParams, updateUser)
-        .delete(logParams, deleteUser);
+        .get(logParams, performanceLogDecorator(getUserById))
+        .put(CreateUpdateUserValidation, logParams, performanceLogDecorator(updateUser))
+        .delete(logParams, performanceLogDecorator(deleteUser));
 
     router.route('/suggest')
-        .get(logParams, getAutoSuggestUsers);
+        .get(logParams, performanceLogDecorator(getAutoSuggestUsers));
 
     router.route('/groups')
-        .get(logParams, getGroups)
-        .post(CreateUpdateGroupValidation, logParams, createGroup);
+        .get(logParams, performanceLogDecorator(getGroups))
+        .post(CreateUpdateGroupValidation, logParams, performanceLogDecorator(createGroup));
 
     router.route('/groups/:id')
-        .get(logParams, getGroupById)
-        .put(CreateUpdateGroupValidation, logParams, updateGroup)
-        .delete(logParams, deleteGroup);
+        .get(logParams, performanceLogDecorator(getGroupById))
+        .put(CreateUpdateGroupValidation, logParams, performanceLogDecorator(updateGroup))
+        .delete(logParams, performanceLogDecorator(deleteGroup));
 
     router.route('/user-groups')
-        .put(AddUsersToGroupValidation, logParams, addUsersToGroup);
+        .put(AddUsersToGroupValidation, logParams, performanceLogDecorator(addUsersToGroup));
 
     app.use('/api/v1', router);
 
