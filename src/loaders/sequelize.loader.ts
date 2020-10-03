@@ -1,6 +1,7 @@
 import { Sequelize } from 'sequelize';
 
 import { config } from 'app/config/index';
+import { logger } from 'app/log/logger';
 
 export async function loadSequelize(): Promise<Sequelize> {
     const sequelize = new Sequelize('nodementoring', config.dbUser, config.dbPass, {
@@ -10,9 +11,9 @@ export async function loadSequelize(): Promise<Sequelize> {
 
     try {
         await sequelize.authenticate();
-        console.log('sequelize connection ok');
+        logger.info('sequelize connection is ok');
     } catch (e) {
-        console.log('sequelize connection fail: ', e);
+        logger.error(`sequelize connection fail: ${JSON.stringify(e)}`);
     }
 
     //do something when app is closing

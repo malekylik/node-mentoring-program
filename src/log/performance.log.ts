@@ -1,24 +1,22 @@
 import express from 'express';
 
+import { logger } from './logger';
+
 export function performanceLogDecorator<G>(
-    controller: (req: express.Request, res: express.Response) => G | Promise<G>,
+    controller: (req: express.Request, res: express.Response, next?: express.NextFunction) => G | Promise<G>,
     contorllerName: string = controller.name
-): (req: express.Request, res: express.Response) => void {
-    return function decoratorController(req: express.Request, res: express.Response) {
+): (req: express.Request, res: express.Response, next: express.NextFunction) => void {
+    return function decoratorController(req: express.Request, res: express.Response, next: express.NextFunction) {
         const now = Date.now();
-        const date = new Date(now);
-        const hours = date.getHours().toString().padStart(2, '0');
-        const minutes = date.getMinutes().toString().padStart(2, '0');
-        const seconds = date.getSeconds().toString().padStart(2, '0');
 
-        console.log(`start: ${contorllerName} - ${hours}:${minutes}:${seconds}`);
+        logger.info(`start - ${contorllerName}`);
 
-        const result = controller(req, res);
+        const result = controller(req, res, next);
 
         if ((result as Promise<G>).then) {
-            void (result as Promise<G>).then(() => console.log(`end: ${contorllerName} - ${Date.now() - now}s`))
+            void (result as Promise<G>).then(() => logger.info(`end - ${contorllerName} - ${Date.now() - now}ms`))
         } else {
-            console.log(`end: ${contorllerName} - ${Date.now() - now}s`);
+            logger.info(`end - ${contorllerName} - ${Date.now() - now}ms`);
         }
     }
 }

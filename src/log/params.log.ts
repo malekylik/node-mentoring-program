@@ -1,11 +1,13 @@
 import express from 'express';
 
-export function logParams(req: express.Request, res: express.Response, next): void {
+import { logger } from './logger';
+
+export function logParams(req: express.Request, res: express.Response, next: express.NextFunction): void {
     const { originalUrl,  params, query } = req;
 
-    console.log('originalUrl', originalUrl);
-    console.log('params', params);
-    console.log('query', query);
+    logger.info(`url - ${originalUrl}`);
+    logger.info(`params - ${JSON.stringify(params)}`);
+    logger.info(`query - ${JSON.stringify(query)}`);
 
     next();
 }
