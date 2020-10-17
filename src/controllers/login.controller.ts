@@ -1,6 +1,7 @@
-import express from 'express';
 import jwt from 'jsonwebtoken';
+import express from 'express';
 
+import { config } from 'app/config/index';
 import { LoginRequest } from 'app/schemas/login.schema';
 
 const ONE_HOUR = 60 * 60;
@@ -9,7 +10,7 @@ export function login(req: LoginRequest, res: express.Response): void {
     const { name } = req.body;
 
     const payload = { name: name, isActive: true };
-    const token = jwt.sign(payload, 'secret', { expiresIn: ONE_HOUR });
+    const token = jwt.sign(payload, config.jwtSecret, { expiresIn: ONE_HOUR });
 
     res.status(200).json(token);
 }
@@ -31,13 +32,13 @@ export async function checkToken(req: express.Request, res: express.Response, ne
 
     if (token) {
         try {
-            await verify(token, 'secret');
+            await verify(token, config.jwtSecret);
 
             next();
         } catch (e) {
             const err: jwt.VerifyErrors = e;
 
-            next({ methodName: 'checkToken', error: `Invalid jwt token: ${err.message}`, code: 401 });
+            next({ methodName: 'checkToken', error: `Invalid jwt token: ${err.message}`, code: 403 });
         }
     } else {
         res.status(401).end();
