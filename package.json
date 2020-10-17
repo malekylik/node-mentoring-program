@@ -22,8 +22,10 @@
   "homepage": "https://github.com/malekylik/node-mentoring-program#readme",
   "dependencies": {
     "@hapi/joi": "^17.1.1",
+    "@types/cors": "^2.8.8",
     "@types/express-serve-static-core": "^4.17.9",
     "@types/uuid": "^8.3.0",
+    "cors": "^2.8.5",
     "csvtojson": "^2.0.10",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",

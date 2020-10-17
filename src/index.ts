@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors'
 
 import { CreateUpdateUserValidation } from './schemas/user.schema';
 import { CreateUpdateGroupValidation } from './schemas/group.schema';
@@ -26,6 +27,11 @@ const app: express.Application = express();
 
 const router: express.Router = express.Router();
 
+const corsOptions = {
+    origin: '*',
+}
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 async function startApp() {
@@ -65,7 +71,7 @@ async function startApp() {
     router.route('/user-groups')
         .put(AddUsersToGroupValidation, logParams, checkToken, performanceLogDecorator(addUsersToGroup));
 
-    router.route('/loggin')
+    router.route('/login')
         .post(LoginValidation, logParams, performanceLogDecorator(login));
 
     app.use('/api/v1', router);
