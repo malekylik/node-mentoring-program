@@ -13,7 +13,7 @@ export function performanceLogDecorator<G>(
 
         const result = controller(req, res, next);
 
-        if ((result as Promise<G>).then) {
+        if (result && (result as Promise<G>).then) {
             void (result as Promise<G>).then(() => logger.info(`end - ${contorllerName} - ${Date.now() - now}ms`))
         } else {
             logger.info(`end - ${contorllerName} - ${Date.now() - now}ms`);
