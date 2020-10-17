@@ -15,6 +15,10 @@ import { SequelizeService } from './services/sequelize.service';
 import { getUsers, createUser, getUserById, updateUser, deleteUser, getAutoSuggestUsers } from './controllers/user.controller';
 import { getGroups, createGroup, getGroupById, updateGroup, deleteGroup } from './controllers/group.controller';
 import { addUsersToGroup } from './controllers/user-groups.controller';
+import { logParams } from './log/params.log';
+import { performanceLogDecorator } from './log/performance.log';
+import { ErrorLogInfo } from './log/types';
+import { logger } from './log/logger';
 
 const app: express.Application = express();
 
@@ -36,38 +40,50 @@ async function startApp() {
     SequelizeService.setSequelize(sequelize);
 
     router.route('/users')
-        .get(getUsers)
-        .post(CreateUpdateUserValidation, createUser);
+        .get(logParams, performanceLogDecorator(getUsers))
+        .post(CreateUpdateUserValidation, logParams, performanceLogDecorator(createUser));
 
     router.route('/users/:id')
-        .get(getUserById)
-        .put(CreateUpdateUserValidation, updateUser)
-        .delete(deleteUser);
+        .get(logParams, performanceLogDecorator(getUserById))
+        .put(CreateUpdateUserValidation, logParams, performanceLogDecorator(updateUser))
+        .delete(logParams, performanceLogDecorator(deleteUser));
 
     router.route('/suggest')
-        .get(getAutoSuggestUsers);
+        .get(logParams, performanceLogDecorator(getAutoSuggestUsers));
 
     router.route('/groups')
-        .get(getGroups)
-        .post(CreateUpdateGroupValidation, createGroup);
+        .get(logParams, performanceLogDecorator(getGroups))
+        .post(CreateUpdateGroupValidation, logParams, performanceLogDecorator(createGroup));
 
     router.route('/groups/:id')
-        .get(getGroupById)
-        .put(CreateUpdateGroupValidation, updateGroup)
-        .delete(deleteGroup);
+        .get(logParams, performanceLogDecorator(getGroupById))
+        .put(CreateUpdateGroupValidation, logParams, performanceLogDecorator(updateGroup))
+        .delete(logParams, performanceLogDecorator(deleteGroup));
 
     router.route('/user-groups')
-        .put(AddUsersToGroupValidation, addUsersToGroup);
+        .put(AddUsersToGroupValidation, logParams, performanceLogDecorator(addUsersToGroup));
 
     app.use('/api/v1', router);
 
+    app.use((err: ErrorLogInfo<Array<string>>, req: express.Request, res: express.Response, next: express.NextFunction) => {
+        const { originalUrl,  params, query } = req;
+
+        logger.error(`method name - ${err.methodName}`);
+        logger.error(`url - ${originalUrl}`);
+        logger.error(`params - ${JSON.stringify(params)}`);
+        logger.error(`query - ${JSON.stringify(query)}`);
+        logger.error(`handled error - ${JSON.stringify(err.error)}`);
+
+        res.status(500).json(err.error);
+    });
+
     app.listen(8080, () => {
-        console.log('Server is running on port: 8080');
+        logger.info('Server is running on port: 8080');
     });
 }
 
 process.on('unhandledRejection', (e) => {
-    console.log('error occured: ', e);
+    logger.info(`error occured in app: ${JSON.stringify(e)}`);
 });
 
 void startApp();

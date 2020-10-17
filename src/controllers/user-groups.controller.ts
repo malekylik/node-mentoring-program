@@ -3,7 +3,7 @@ import express from 'express';
 import { UserGroupsService } from 'app/services/user-groups.service';
 import { AddUsersToGroupRequest } from 'app/schemas/user-groups.schema';
 
-export async function addUsersToGroup(req: AddUsersToGroupRequest, res: express.Response): Promise<void> {
+export async function addUsersToGroup(req: AddUsersToGroupRequest, res: express.Response, next: express.NextFunction): Promise<void> {
     const { groupId, userIds } = req.body;
 
     const result = await UserGroupsService.addUsersToGroup(groupId, userIds.map(id => String(id)));
@@ -17,6 +17,6 @@ export async function addUsersToGroup(req: AddUsersToGroupRequest, res: express.
             res.status(404).end();
         }
     } else {
-        res.status(400).json(result.getError());
+        next({ methodName: 'addUsersToGroup', error: result.getError() });
     }
 }
