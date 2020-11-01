@@ -2,7 +2,7 @@ import 'regenerator-runtime/runtime';
 
 import express from 'express';
 
-import { getUsers, getUserById, createUser, updateUser } from 'app/controllers/user.controller';
+import { getUsers, getUserById, createUser, updateUser, deleteUser } from 'app/controllers/user.controller';
 import { UserCreateRequest, UserUpdateRequest } from 'app/schemas/user.schema';
 
 jest.mock('app/services/user.service', () => {
@@ -47,6 +47,7 @@ jest.mock('app/services/user.service', () => {
             getUserById: jest.fn().mockResolvedValue(mockUsers[0]),
             saveUser: jest.fn().mockImplementation(({ login, password, age }) => ({ ...mockUsers[0], login, password, age })),
             updateUser: jest.fn(),
+            deleteUser: jest.fn(),
         },
     };
 });
@@ -136,7 +137,7 @@ describe('User controller', () => {
                 json: mockJson,
             }
 
-            await updateUser(mockReq as unknown as UserCreateRequest, mockResp as unknown as express.Response);
+            await updateUser(mockReq as unknown as UserUpdateRequest, mockResp as unknown as express.Response);
     
             expect(mockUserService.updateUser).toBeCalledWith('24', { login: 'new_some_login', password: 'new_some_password', age: 36 });
             expect(mockJson).toBeCalledWith({ ...mockUsers[0], login: 'new_some_login', password: 'new_some_password', age: '36' });
@@ -153,9 +154,47 @@ describe('User controller', () => {
                 end: mockEnd,
             }
 
-            await updateUser(mockReq as unknown as UserCreateRequest, mockResp as unknown as express.Response);
+            await updateUser(mockReq as unknown as UserUpdateRequest, mockResp as unknown as express.Response);
     
             expect(mockUserService.updateUser).toBeCalledWith('28', { login: 'new_some_login', password: 'new_some_password', age: 36 });
+            expect(mockStatus).toBeCalledWith(404);
+            expect(mockEnd).toBeCalled();
+        });
+    });
+
+    describe('deleteUser', () => {
+        it('deleteUser should update user by id and respond with updated user and 202 status', async () => {
+            const mockStatus = jest.fn().mockReturnThis();
+            mockUserService.deleteUser.mockResolvedValue(true);
+
+            const mockEnd = jest.fn();
+            const mockReq = { params: { id: '45' } };
+            const mockResp = {
+                status: mockStatus,
+                end: mockEnd,
+            }
+
+            await deleteUser(mockReq as unknown as UserUpdateRequest, mockResp as unknown as express.Response);
+    
+            expect(mockUserService.deleteUser).toBeCalledWith('45');
+            expect(mockStatus).toBeCalledWith(202);
+            expect(mockEnd).toBeCalled();
+        });
+
+        it('deleteUser should respond with 404 if user is not found', async () => {
+            const mockStatus = jest.fn().mockReturnThis();
+            mockUserService.deleteUser.mockResolvedValue(false);
+
+            const mockEnd = jest.fn();
+            const mockReq = { params: { id: '27' } };
+            const mockResp = {
+                status: mockStatus,
+                end: mockEnd,
+            }
+
+            await deleteUser(mockReq as unknown as UserUpdateRequest, mockResp as unknown as express.Response);
+    
+            expect(mockUserService.deleteUser).toBeCalledWith('27');
             expect(mockStatus).toBeCalledWith(404);
             expect(mockEnd).toBeCalled();
         });
