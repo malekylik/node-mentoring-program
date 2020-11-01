@@ -2,7 +2,8 @@ import 'regenerator-runtime/runtime';
 
 import express from 'express';
 
-import { getUsers } from 'app/controllers/user.controller';
+import { getUsers, getUserById } from 'app/controllers/user.controller';
+import { UserCreateRequest, UserUpdateRequest } from 'app/schemas/user.schema';
 
 jest.mock('app/services/user.service', () => {
     const mockUsers = [
@@ -43,12 +44,16 @@ jest.mock('app/services/user.service', () => {
         mockUsers,
         UserService: {
             getUsers: jest.fn().mockResolvedValue(mockUsers),
+            getUserById: jest.fn().mockResolvedValue(mockUsers[0]),
         },
     };
 });
 
 describe('User controller', () => {
-    const mockUsers = jest.requireMock('../../src/services/user.service').mockUsers;
+    const mockModule = jest.requireMock('../../src/services/user.service');
+
+    const mockUsers = mockModule.mockUsers;
+    const mockUserService = mockModule.UserService;
 
     it('getUsers should return users', async () => {
         const mockJson = jest.fn();
@@ -61,5 +66,42 @@ describe('User controller', () => {
         await getUsers(mockReq as express.Request, mockResp as unknown as express.Response);
 
         expect(mockJson).toBeCalledWith(mockUsers);
+    });
+
+    describe('getUserById', () => {
+        it('getUserById should return user by id', async () => {
+            mockUserService.getUserById.mockResolvedValue(mockUsers[0]);
+
+            const mockJson = jest.fn();
+
+            const mockReq = { params: { id: '12' } };
+            const mockResp = {
+                json: mockJson,
+            }
+
+            await getUserById(mockReq as unknown as UserCreateRequest, mockResp as unknown as express.Response);
+    
+            expect(mockUserService.getUserById).toBeCalledWith('12');
+            expect(mockJson).toBeCalledWith(mockUsers[0]);
+        });
+
+        it('getUserById should response with 404 if user is not found', async () => {
+            mockUserService.getUserById.mockResolvedValue(undefined);
+
+            const mockStatus = jest.fn().mockReturnThis();
+            const mockEnd = jest.fn();
+
+            const mockReq = { params: { id: '14' } };
+            const mockResp = {
+                status: mockStatus,
+                end: mockEnd,
+            }
+
+            await getUserById(mockReq as unknown as UserCreateRequest, mockResp as unknown as express.Response);
+    
+            expect(mockUserService.getUserById).toBeCalledWith('14');
+            expect(mockStatus).toBeCalledWith(404);
+            expect(mockEnd).toBeCalled();
+        });
     });
 });
