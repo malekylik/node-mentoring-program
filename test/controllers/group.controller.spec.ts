@@ -2,7 +2,7 @@ import 'regenerator-runtime/runtime';
 
 import express from 'express';
 
-import { getGroups, createGroup, getGroupById, updateGroup } from 'app/controllers/group.controller';
+import { getGroups, createGroup, getGroupById, updateGroup, deleteGroup } from 'app/controllers/group.controller';
 import { GroupCreateRequest, GroupUpdateRequest } from 'app/schemas/group.schema';
 
 jest.mock('app/services/group.service', () => {
@@ -26,6 +26,7 @@ jest.mock('app/services/group.service', () => {
             saveGroup: jest.fn().mockImplementation(({ name, permissions }) => ({ id: '3', name, permissions })),
             getGroupById: jest.fn().mockResolvedValue(mockGroups[0]),
             updateGroup: jest.fn(),
+            deleteGroup: jest.fn(),
         },
     };
 });
@@ -134,6 +135,44 @@ describe('Group controller', () => {
             await updateGroup(mockReq as unknown as GroupUpdateRequest, mockResp as unknown as express.Response);
 
             expect(mockGroupService.updateGroup).toBeCalledWith('11', { name: 'group_name', permissions: ['READ', 'UPLOAD_FILES'] });
+            expect(mockStatus).toBeCalledWith(404);
+            expect(mockEnd).toBeCalled();
+        });
+    });
+
+    describe('deleteGroup', () => {
+        it('deleteGroup should update group by id and respond with updated group and 202 status', async () => {
+            const mockStatus = jest.fn().mockReturnThis();
+            mockGroupService.deleteGroup.mockResolvedValue(true);
+
+            const mockEnd = jest.fn();
+            const mockReq = { params: { id: '455' } };
+            const mockResp = {
+                status: mockStatus,
+                end: mockEnd,
+            }
+
+            await deleteGroup(mockReq as unknown as GroupUpdateRequest, mockResp as unknown as express.Response);
+
+            expect(mockGroupService.deleteGroup).toBeCalledWith('455');
+            expect(mockStatus).toBeCalledWith(202);
+            expect(mockEnd).toBeCalled();
+        });
+
+        it('deleteGroup should respond with 404 if group is not found', async () => {
+            const mockStatus = jest.fn().mockReturnThis();
+            mockGroupService.deleteGroup.mockResolvedValue(false);
+
+            const mockEnd = jest.fn();
+            const mockReq = { params: { id: '277' } };
+            const mockResp = {
+                status: mockStatus,
+                end: mockEnd,
+            }
+
+            await deleteGroup(mockReq as unknown as GroupUpdateRequest, mockResp as unknown as express.Response);
+
+            expect(mockGroupService.deleteGroup).toBeCalledWith('277');
             expect(mockStatus).toBeCalledWith(404);
             expect(mockEnd).toBeCalled();
         });
