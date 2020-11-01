@@ -2,7 +2,7 @@ import 'regenerator-runtime/runtime';
 
 import express from 'express';
 
-import { getGroups, createGroup, getGroupById } from 'app/controllers/group.controller';
+import { getGroups, createGroup, getGroupById, updateGroup } from 'app/controllers/group.controller';
 import { GroupCreateRequest, GroupUpdateRequest } from 'app/schemas/group.schema';
 
 jest.mock('app/services/group.service', () => {
@@ -25,6 +25,7 @@ jest.mock('app/services/group.service', () => {
             getGroups: jest.fn().mockResolvedValue(mockGroups),
             saveGroup: jest.fn().mockImplementation(({ name, permissions }) => ({ id: '3', name, permissions })),
             getGroupById: jest.fn().mockResolvedValue(mockGroups[0]),
+            updateGroup: jest.fn(),
         },
     };
 });
@@ -76,7 +77,7 @@ describe('Group controller', () => {
             }
 
             await getGroupById(mockReq as unknown as GroupUpdateRequest, mockResp as unknown as express.Response);
-    
+
             expect(mockGroupService.getGroupById).toBeCalledWith('18');
             expect(mockJson).toBeCalledWith(mockGroups[0]);
         });
@@ -94,8 +95,45 @@ describe('Group controller', () => {
             }
 
             await getGroupById(mockReq as unknown as GroupUpdateRequest, mockResp as unknown as express.Response);
-    
+
             expect(mockGroupService.getGroupById).toBeCalledWith('19');
+            expect(mockStatus).toBeCalledWith(404);
+            expect(mockEnd).toBeCalled();
+        });
+    });
+
+    describe('updateGroup', () => {
+        it('updateGroup should update group by id and respond with updated group', async () => {
+            const mockStatus = jest.fn().mockReturnThis();
+            mockGroupService.updateGroup.mockResolvedValue({ id: '3', name: 'group_name', permissions: ['READ', 'UPLOAD_FILES'] });
+
+            const mockJson = jest.fn();
+            const mockReq = { params: { id: '13' }, body: { name: 'group_name', permissions: ['READ', 'UPLOAD_FILES'] } };
+            const mockResp = {
+                status: mockStatus,
+                json: mockJson,
+            }
+
+            await updateGroup(mockReq as unknown as GroupUpdateRequest, mockResp as unknown as express.Response);
+
+            expect(mockGroupService.updateGroup).toBeCalledWith('13', { name: 'group_name', permissions: ['READ', 'UPLOAD_FILES'] });
+            expect(mockJson).toBeCalledWith({ id: '3', name: 'group_name', permissions: ['READ', 'UPLOAD_FILES'] });
+        });
+
+        it('updateGroup should respond with 404 if group is not found', async () => {
+            const mockStatus = jest.fn().mockReturnThis();
+            mockGroupService.updateGroup.mockResolvedValue(undefined);
+
+            const mockEnd = jest.fn();
+            const mockReq = { params: { id: '11' }, body: { name: 'group_name', permissions: ['READ', 'UPLOAD_FILES'] } };
+            const mockResp = {
+                status: mockStatus,
+                end: mockEnd,
+            }
+
+            await updateGroup(mockReq as unknown as GroupUpdateRequest, mockResp as unknown as express.Response);
+
+            expect(mockGroupService.updateGroup).toBeCalledWith('11', { name: 'group_name', permissions: ['READ', 'UPLOAD_FILES'] });
             expect(mockStatus).toBeCalledWith(404);
             expect(mockEnd).toBeCalled();
         });
