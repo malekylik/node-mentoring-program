@@ -2,7 +2,7 @@ import 'regenerator-runtime/runtime';
 
 import express from 'express';
 
-import { getUsers, getUserById, createUser, updateUser, deleteUser } from 'app/controllers/user.controller';
+import { getUsers, getUserById, createUser, updateUser, deleteUser, getAutoSuggestUsers } from 'app/controllers/user.controller';
 import { UserCreateRequest, UserUpdateRequest } from 'app/schemas/user.schema';
 
 jest.mock('app/services/user.service', () => {
@@ -48,6 +48,7 @@ jest.mock('app/services/user.service', () => {
             saveUser: jest.fn().mockImplementation(({ login, password, age }) => ({ ...mockUsers[0], login, password, age })),
             updateUser: jest.fn(),
             deleteUser: jest.fn(),
+            getAutoSuggestUsers: jest.fn().mockResolvedValue(mockUsers),
         },
     };
 });
@@ -198,5 +199,18 @@ describe('User controller', () => {
             expect(mockStatus).toBeCalledWith(404);
             expect(mockEnd).toBeCalled();
         });
+    });
+
+    it('getAutoSuggestUsers should return users as suggestion', async () => {
+        const mockJson = jest.fn();
+        const mockReq = { query: { login_substring: 'some_user_name', limit: '22' } };
+        const mockResp = {
+            json: mockJson,
+        };
+
+        await getAutoSuggestUsers(mockReq as unknown as express.Request , mockResp as unknown as express.Response);
+
+        expect(mockUserService.getAutoSuggestUsers).toBeCalledWith('some_user_name', 22);
+        expect(mockJson).toBeCalledWith(mockUsers);
     });
 });
