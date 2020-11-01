@@ -2,7 +2,7 @@ import 'regenerator-runtime/runtime';
 
 import express from 'express';
 
-import { getUsers, getUserById } from 'app/controllers/user.controller';
+import { getUsers, getUserById, createUser } from 'app/controllers/user.controller';
 import { UserCreateRequest, UserUpdateRequest } from 'app/schemas/user.schema';
 
 jest.mock('app/services/user.service', () => {
@@ -45,6 +45,7 @@ jest.mock('app/services/user.service', () => {
         UserService: {
             getUsers: jest.fn().mockResolvedValue(mockUsers),
             getUserById: jest.fn().mockResolvedValue(mockUsers[0]),
+            saveUser: jest.fn().mockImplementation(({ login, password, age }) => ({ ...mockUsers[0], login, password, age })),
         },
     };
 });
@@ -79,7 +80,7 @@ describe('User controller', () => {
                 json: mockJson,
             }
 
-            await getUserById(mockReq as unknown as UserCreateRequest, mockResp as unknown as express.Response);
+            await getUserById(mockReq as unknown as UserUpdateRequest, mockResp as unknown as express.Response);
     
             expect(mockUserService.getUserById).toBeCalledWith('12');
             expect(mockJson).toBeCalledWith(mockUsers[0]);
@@ -97,11 +98,28 @@ describe('User controller', () => {
                 end: mockEnd,
             }
 
-            await getUserById(mockReq as unknown as UserCreateRequest, mockResp as unknown as express.Response);
+            await getUserById(mockReq as unknown as UserUpdateRequest, mockResp as unknown as express.Response);
     
             expect(mockUserService.getUserById).toBeCalledWith('14');
             expect(mockStatus).toBeCalledWith(404);
             expect(mockEnd).toBeCalled();
         });
+    });
+
+    it('createUser should save user with passed data and respond with 201 status', async () => {
+        const mockStatus = jest.fn().mockReturnThis();
+        const mockJson = jest.fn();
+
+        const mockReq = { body: { login: 'some_login', password: 'some_password', age: '32' } };
+        const mockResp = {
+            status: mockStatus,
+            json: mockJson,
+        }
+
+        await createUser(mockReq as unknown as UserCreateRequest, mockResp as unknown as express.Response);
+
+        expect(mockStatus).toBeCalledWith(201);
+        expect(mockUserService.saveUser).toBeCalledWith({ login: 'some_login', password: 'some_password', age: 32 });
+        expect(mockJson).toBeCalledWith({ ...mockUsers[0], login: 'some_login', password: 'some_password', age: 32 });
     });
 });
