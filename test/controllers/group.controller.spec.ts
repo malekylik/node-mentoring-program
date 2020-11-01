@@ -2,7 +2,8 @@ import 'regenerator-runtime/runtime';
 
 import express from 'express';
 
-import { getGroups } from 'app/controllers/group.controller';
+import { getGroups, createGroup } from 'app/controllers/group.controller';
+import { GroupCreateRequest } from 'app/schemas/group.schema';
 
 jest.mock('app/services/group.service', () => {
     const mockGroups = [
@@ -22,6 +23,7 @@ jest.mock('app/services/group.service', () => {
         mockGroups,
         GroupService: {
             getGroups: jest.fn().mockResolvedValue(mockGroups),
+            saveGroup: jest.fn().mockImplementation(({ name, permissions }) => ({ id: '3', name, permissions })),
         },
     };
 });
@@ -43,5 +45,21 @@ describe('Group controller', () => {
         await getGroups(mockReq as express.Request, mockResp as unknown as express.Response);
 
         expect(mockJson).toBeCalledWith(mockGroups);
+    });
+
+    it('createGroup should save group with passed data', async () => {
+        const mockStatus = jest.fn().mockReturnThis();
+        const mockJson = jest.fn();
+
+        const mockReq = { body: { name: 'group_name', permissions: ['READ', 'UPLOAD_FILES'] } };
+        const mockResp = {
+            status: mockStatus,
+            json: mockJson,
+        }
+
+        await createGroup(mockReq as unknown as GroupCreateRequest, mockResp as unknown as express.Response);
+
+        expect(mockGroupService.saveGroup).toBeCalledWith({ name: 'group_name', permissions: ['READ', 'UPLOAD_FILES'] });
+        expect(mockJson).toBeCalledWith({ id: '3', name: 'group_name', permissions: ['READ', 'UPLOAD_FILES'] });
     });
 });
