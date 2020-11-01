@@ -2,7 +2,7 @@ import 'regenerator-runtime/runtime';
 
 import express from 'express';
 
-import { getUsers, getUserById, createUser } from 'app/controllers/user.controller';
+import { getUsers, getUserById, createUser, updateUser } from 'app/controllers/user.controller';
 import { UserCreateRequest, UserUpdateRequest } from 'app/schemas/user.schema';
 
 jest.mock('app/services/user.service', () => {
@@ -46,6 +46,7 @@ jest.mock('app/services/user.service', () => {
             getUsers: jest.fn().mockResolvedValue(mockUsers),
             getUserById: jest.fn().mockResolvedValue(mockUsers[0]),
             saveUser: jest.fn().mockImplementation(({ login, password, age }) => ({ ...mockUsers[0], login, password, age })),
+            updateUser: jest.fn(),
         },
     };
 });
@@ -121,5 +122,42 @@ describe('User controller', () => {
         expect(mockStatus).toBeCalledWith(201);
         expect(mockUserService.saveUser).toBeCalledWith({ login: 'some_login', password: 'some_password', age: 32 });
         expect(mockJson).toBeCalledWith({ ...mockUsers[0], login: 'some_login', password: 'some_password', age: 32 });
+    });
+
+    describe('updateUser', () => {
+        it('updateUser should update user by id and respond with updated user', async () => {
+            const mockStatus = jest.fn().mockReturnThis();
+            mockUserService.updateUser.mockResolvedValue({ ...mockUsers[0], login: 'new_some_login', password: 'new_some_password', age: '36' });
+
+            const mockJson = jest.fn();
+            const mockReq = { params: { id: '24' }, body: { login: 'new_some_login', password: 'new_some_password', age: '36' } };
+            const mockResp = {
+                status: mockStatus,
+                json: mockJson,
+            }
+
+            await updateUser(mockReq as unknown as UserCreateRequest, mockResp as unknown as express.Response);
+    
+            expect(mockUserService.updateUser).toBeCalledWith('24', { login: 'new_some_login', password: 'new_some_password', age: 36 });
+            expect(mockJson).toBeCalledWith({ ...mockUsers[0], login: 'new_some_login', password: 'new_some_password', age: '36' });
+        });
+
+        it('updateUser should respond with 404 if user is not found', async () => {
+            const mockStatus = jest.fn().mockReturnThis();
+            mockUserService.updateUser.mockResolvedValue(undefined);
+
+            const mockEnd = jest.fn();
+            const mockReq = { params: { id: '28' }, body: { login: 'new_some_login', password: 'new_some_password', age: '36' } };
+            const mockResp = {
+                status: mockStatus,
+                end: mockEnd,
+            }
+
+            await updateUser(mockReq as unknown as UserCreateRequest, mockResp as unknown as express.Response);
+    
+            expect(mockUserService.updateUser).toBeCalledWith('28', { login: 'new_some_login', password: 'new_some_password', age: 36 });
+            expect(mockStatus).toBeCalledWith(404);
+            expect(mockEnd).toBeCalled();
+        });
     });
 });
