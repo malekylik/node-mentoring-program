@@ -1,8 +1,10 @@
 import express from 'express';
+import cors from 'cors'
 
 import { CreateUpdateUserValidation } from './schemas/user.schema';
 import { CreateUpdateGroupValidation } from './schemas/group.schema';
 import { AddUsersToGroupValidation } from './schemas/user-groups.schema';
+import { LoginValidation } from './schemas/login.schema';
 import { loadSequelize } from './loaders/sequelize.loader';
 import { loadUserModel } from './loaders/user-model.loader';
 import { loadGroupModel } from './loaders/group-model.loader';
@@ -15,6 +17,7 @@ import { SequelizeService } from './services/sequelize.service';
 import { getUsers, createUser, getUserById, updateUser, deleteUser, getAutoSuggestUsers } from './controllers/user.controller';
 import { getGroups, createGroup, getGroupById, updateGroup, deleteGroup } from './controllers/group.controller';
 import { addUsersToGroup } from './controllers/user-groups.controller';
+import { login, checkToken } from './controllers/login.controller';
 import { logParams } from './log/params.log';
 import { performanceLogDecorator } from './log/performance.log';
 import { ErrorLogInfo } from './log/types';
@@ -22,8 +25,17 @@ import { logger } from './log/logger';
 
 const app: express.Application = express();
 
-const router: express.Router = express.Router();
+const userRouter: express.Router = express.Router();
+const loginRouter: express.Router = express.Router();
+const groupRouter: express.Router = express.Router();
+const suggestRoute: express.Router = express.Router();
+const userGroupRoute: express.Router = express.Router();
 
+const corsOptions = {
+    origin: '*',
+}
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 async function startApp() {
@@ -39,34 +51,51 @@ async function startApp() {
     GroupService.setGroupModel(new GroupModel(groupModelDB, userModelDB));
     SequelizeService.setSequelize(sequelize);
 
-    router.route('/users')
-        .get(logParams, performanceLogDecorator(getUsers))
-        .post(CreateUpdateUserValidation, logParams, performanceLogDecorator(createUser));
+    loginRouter.use(logParams);
 
-    router.route('/users/:id')
-        .get(logParams, performanceLogDecorator(getUserById))
-        .put(CreateUpdateUserValidation, logParams, performanceLogDecorator(updateUser))
-        .delete(logParams, performanceLogDecorator(deleteUser));
+    loginRouter.route('/login')
+        .post(LoginValidation, performanceLogDecorator(login));
 
-    router.route('/suggest')
-        .get(logParams, performanceLogDecorator(getAutoSuggestUsers));
+    userRouter.use(logParams);
+    userRouter.use(checkToken);
 
-    router.route('/groups')
-        .get(logParams, performanceLogDecorator(getGroups))
-        .post(CreateUpdateGroupValidation, logParams, performanceLogDecorator(createGroup));
+    userRouter.route('/users')
+        .get(performanceLogDecorator(getUsers))
+        .post(CreateUpdateUserValidation, performanceLogDecorator(createUser));
 
-    router.route('/groups/:id')
-        .get(logParams, performanceLogDecorator(getGroupById))
-        .put(CreateUpdateGroupValidation, logParams, performanceLogDecorator(updateGroup))
-        .delete(logParams, performanceLogDecorator(deleteGroup));
+    userRouter.route('/users/:id')
+        .get(performanceLogDecorator(getUserById))
+        .put(CreateUpdateUserValidation, performanceLogDecorator(updateUser))
+        .delete(performanceLogDecorator(deleteUser));
 
-    router.route('/user-groups')
-        .put(AddUsersToGroupValidation, logParams, performanceLogDecorator(addUsersToGroup));
+    suggestRoute.use(logParams);
+    suggestRoute.use(checkToken);
 
-    app.use('/api/v1', router);
+    suggestRoute.route('/suggest')
+        .get(performanceLogDecorator(getAutoSuggestUsers));
+
+    groupRouter.use(logParams);
+    groupRouter.use(checkToken);
+
+    groupRouter.route('/groups')
+        .get(performanceLogDecorator(getGroups))
+        .post(CreateUpdateGroupValidation, logParams, checkToken, performanceLogDecorator(createGroup));
+
+    groupRouter.route('/groups/:id')
+        .get(performanceLogDecorator(getGroupById))
+        .put(CreateUpdateGroupValidation, performanceLogDecorator(updateGroup))
+        .delete(performanceLogDecorator(deleteGroup));
+
+    userGroupRoute.use(logParams);
+    userGroupRoute.use(checkToken);
+
+    userGroupRoute.route('/user-groups')
+        .put(AddUsersToGroupValidation, performanceLogDecorator(addUsersToGroup));
+
+    app.use('/api/v1', loginRouter, userRouter, groupRouter, suggestRoute, userGroupRoute);
 
     app.use((err: ErrorLogInfo<Array<string>>, req: express.Request, res: express.Response, next: express.NextFunction) => {
-        const { originalUrl,  params, query } = req;
+        const { originalUrl, params, query } = req;
 
         logger.error(`method name - ${err.methodName}`);
         logger.error(`url - ${originalUrl}`);
@@ -74,7 +103,7 @@ async function startApp() {
         logger.error(`query - ${JSON.stringify(query)}`);
         logger.error(`handled error - ${JSON.stringify(err.error)}`);
 
-        res.status(500).json(err.error);
+        res.status(err.code ?? 500).json(err.error);
     });
 
     app.listen(8080, () => {
