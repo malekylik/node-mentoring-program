@@ -25,7 +25,11 @@ import { logger } from './log/logger';
 
 const app: express.Application = express();
 
-const router: express.Router = express.Router();
+const userRouter: express.Router = express.Router();
+const loginRouter: express.Router = express.Router();
+const groupRouter: express.Router = express.Router();
+const suggestRoute: express.Router = express.Router();
+const userGroupRoute: express.Router = express.Router();
 
 const corsOptions = {
     origin: '*',
@@ -47,34 +51,48 @@ async function startApp() {
     GroupService.setGroupModel(new GroupModel(groupModelDB, userModelDB));
     SequelizeService.setSequelize(sequelize);
 
-    router.route('/users')
-        .get(logParams, checkToken, performanceLogDecorator(getUsers))
-        .post(CreateUpdateUserValidation, logParams, checkToken, performanceLogDecorator(createUser));
+    loginRouter.use(logParams);
 
-    router.route('/users/:id')
-        .get(logParams, checkToken, performanceLogDecorator(getUserById))
-        .put(CreateUpdateUserValidation, logParams, checkToken, performanceLogDecorator(updateUser))
-        .delete(logParams, checkToken, performanceLogDecorator(deleteUser));
+    loginRouter.route('/login')
+        .post(LoginValidation, performanceLogDecorator(login));
 
-    router.route('/suggest')
-        .get(logParams, checkToken, performanceLogDecorator(getAutoSuggestUsers));
+    userRouter.use(logParams);
+    userRouter.use(checkToken);
 
-    router.route('/groups')
-        .get(logParams, checkToken, performanceLogDecorator(getGroups))
+    userRouter.route('/users')
+        .get(performanceLogDecorator(getUsers))
+        .post(CreateUpdateUserValidation, performanceLogDecorator(createUser));
+
+    userRouter.route('/users/:id')
+        .get(performanceLogDecorator(getUserById))
+        .put(CreateUpdateUserValidation, performanceLogDecorator(updateUser))
+        .delete(performanceLogDecorator(deleteUser));
+
+    suggestRoute.use(logParams);
+    suggestRoute.use(checkToken);
+
+    suggestRoute.route('/suggest')
+        .get(performanceLogDecorator(getAutoSuggestUsers));
+
+    groupRouter.use(logParams);
+    groupRouter.use(checkToken);
+
+    groupRouter.route('/groups')
+        .get(performanceLogDecorator(getGroups))
         .post(CreateUpdateGroupValidation, logParams, checkToken, performanceLogDecorator(createGroup));
 
-    router.route('/groups/:id')
-        .get(logParams, checkToken, performanceLogDecorator(getGroupById))
-        .put(CreateUpdateGroupValidation, logParams, checkToken, performanceLogDecorator(updateGroup))
-        .delete(logParams, checkToken, performanceLogDecorator(deleteGroup));
+    groupRouter.route('/groups/:id')
+        .get(performanceLogDecorator(getGroupById))
+        .put(CreateUpdateGroupValidation, performanceLogDecorator(updateGroup))
+        .delete(performanceLogDecorator(deleteGroup));
 
-    router.route('/user-groups')
-        .put(AddUsersToGroupValidation, logParams, checkToken, performanceLogDecorator(addUsersToGroup));
+    userGroupRoute.use(logParams);
+    userGroupRoute.use(checkToken);
 
-    router.route('/login')
-        .post(LoginValidation, logParams, performanceLogDecorator(login));
+    userGroupRoute.route('/user-groups')
+        .put(AddUsersToGroupValidation, performanceLogDecorator(addUsersToGroup));
 
-    app.use('/api/v1', router);
+    app.use('/api/v1', loginRouter, userRouter, groupRouter, suggestRoute, userGroupRoute);
 
     app.use((err: ErrorLogInfo<Array<string>>, req: express.Request, res: express.Response, next: express.NextFunction) => {
         const { originalUrl, params, query } = req;
