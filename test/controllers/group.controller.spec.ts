@@ -1,5 +1,3 @@
-import 'regenerator-runtime/runtime';
-
 import express from 'express';
 
 import { getGroups, createGroup, getGroupById, updateGroup, deleteGroup } from 'app/controllers/group.controller';

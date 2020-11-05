@@ -1,5 +1,3 @@
-import 'regenerator-runtime/runtime';
-
 import express from 'express';
 
 import { getUsers, getUserById, createUser, updateUser, deleteUser, getAutoSuggestUsers } from 'app/controllers/user.controller';
